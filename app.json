@@ -4,26 +4,42 @@
     "slug": "CafeCalc",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "icon": "./assets/images/icon.png",
+    "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "useFrameworks": "static"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.chronotech.CafeCalc"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/images/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "5a691f59-cbc0-44d5-a0fe-cc0de8bbf459"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      ["react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-3213905360913918~3763554955",
+          "iosAppId": "ca-app-pub-3213905360913918~3763554955"
+        }
+      ]
+    ]
   }
 }
