@@ -99,6 +99,7 @@
       [
         "expo-build-properties", {
         "android": {
+          "enableProguardInReleaseBuilds": true,
           "missingDimensionStrategy": [
             { "dimension": "store", "flavor": "play" }
           ]
