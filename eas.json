@@ -12,7 +12,8 @@
     },
     "production": {
       "android": {
-        "autoIncrement": true
+        "autoIncrement": true,
+        "minify": true
       },
       "ios": {
         "autoIncrement": true
