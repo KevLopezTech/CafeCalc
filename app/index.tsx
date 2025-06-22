@@ -16,6 +16,8 @@ import { useHeaderHeight } from '@react-navigation/elements';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
 import { Ionicons } from '@expo/vector-icons';
+import { usePurchases } from '@/contexts/PurchaseContexts';
+import { useRouter } from 'expo-router';
 
 const TIP_OPTIONS = [
     { label: '15%', value: 0.15, key: '15' },
@@ -39,6 +41,8 @@ export default function HomeScreen() {
 
     const insets = useSafeAreaInsets();
     const headerHeight = useHeaderHeight();
+    const { entitlements } = usePurchases();
+    const router = useRouter();
 
     // Theme Colors
     const backgroundColor = useThemeColor('background');
@@ -186,7 +190,7 @@ export default function HomeScreen() {
         mainTitleBanner: { backgroundColor: buttonBackgroundColor + 'CC', paddingVertical: 15, paddingHorizontal: 20, borderRadius: 16, alignItems: 'center', marginBottom: 25, shadowColor: Platform.OS === 'ios' ? textColor : '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: Platform.OS === 'ios' ? 0.2 : 0.3, shadowRadius: Platform.OS === 'ios' ? 5 : 4, elevation: 8, },
         mainTitleText: { fontSize: 32, fontWeight: 'bold', color: textColor, textAlign: 'center', marginBottom: 2, marginTop: 100 },
         mainSubtitleText: { fontSize: 16, color: textColor, textAlign: 'center', opacity: 0.9, marginBottom: 20 },
-        inputGroup: { flexDirection: 'row', alignItems: 'center', backgroundColor: inputBackgroundColor + 'CC', borderWidth: 1, borderColor: inputBorderColor, borderRadius: 10, paddingHorizontal: 15, marginBottom: 20, width: '100%', maxWidth: 400, alignSelf: 'center', },
+        inputGroup: { flexDirection: 'row', alignItems: 'center', backgroundColor: inputBackgroundColor + 'CC', borderWidth: 1, borderColor: inputBorderColor + 'CC', borderRadius: 10, paddingHorizontal: 15, marginBottom: 20, width: '100%', maxWidth: 400, alignSelf: 'center', },
         dollarSign: { fontSize: 24, color: dollarSignColor, marginRight: 10, },
         input: { flex: 1, height: 55, fontSize: 24, color: inputText, textAlign: 'center', },
         buttonsContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20, width: '100%', maxWidth: 450, alignSelf: 'center', alignItems: 'center', },
@@ -194,13 +198,14 @@ export default function HomeScreen() {
         selectedTipButton: { backgroundColor: selectedButtonBgColor, borderColor: selectedButtonBorderColor, borderWidth: 2, },
         tipButtonText: { color: buttonTextColor, fontSize: 16, fontWeight: '600', },
         otherTipButtonInput: { color: buttonTextColor, fontSize: 16, fontWeight: '600', textAlign: 'center', paddingVertical: 0, paddingHorizontal: 2, width: '100%', },
-        resultRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: resultBgColor + 'CC', paddingVertical: 15, paddingHorizontal: 10, borderRadius: 10, borderWidth: 1, borderColor: resultBorderColor, shadowColor: Platform.OS === 'ios' ? textColor : '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: Platform.OS === 'ios' ? 0.1 : 0.22, shadowRadius: Platform.OS === 'ios' ? 2 : 2.22, elevation: 3, marginBottom: 15, width: '100%', maxWidth: 400, alignSelf: 'center', },
-        totalContainerOverride: { backgroundColor: totalBgColor + 'CC', borderColor: totalBorderColor, },
+        resultRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: resultBgColor + 'CC', paddingVertical: 15, paddingHorizontal: 10, borderRadius: 10, borderWidth: 1, borderColor: resultBorderColor + 'CC', shadowColor: Platform.OS === 'ios' ? textColor : '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: Platform.OS === 'ios' ? 0.1 : 0.22, shadowRadius: Platform.OS === 'ios' ? 2 : 2.22, elevation: 3, marginBottom: 15, width: '100%', maxWidth: 400, alignSelf: 'center', },
+        totalContainerOverride: { backgroundColor: totalBgColor + 'CC', borderColor: totalBorderColor + 'CC', },
         resultTextContainer: { alignItems: 'center', flex: 1, },
         resultLabelText: { fontSize: 18, color: secondaryTextColor, marginBottom: 4, },
         resultAmountText: { fontSize: 30, fontWeight: 'bold', color: primaryColor, },
-        roundingButton: { padding: 8, },
-        splitResultContainer: { backgroundColor: inputBackgroundColor + 'CC', padding: 20, borderRadius: 10, borderWidth: 1, borderColor: inputBorderColor, width: '100%', maxWidth: 400, alignSelf: 'center', marginTop: 5, },
+        roundingButton: { padding: 8, opacity: 1},
+        roundingButtonLocked: { padding: 8, opacity: 0.5, },
+        splitResultContainer: { backgroundColor: inputBackgroundColor + 'CC', padding: 20, borderRadius: 10, borderWidth: 1, borderColor: inputBorderColor + 'CC', width: '100%', maxWidth: 400, alignSelf: 'center', marginTop: 5, },
         splitResultRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, },
         splitResultLabel: { fontSize: 16, color: secondaryTextColor, },
         splitResultValue: { fontSize: 20, fontWeight: 'bold', color: textColor, },
@@ -234,16 +239,40 @@ export default function HomeScreen() {
                                     <TextInput ref={customPercentInputRef} style={styles.otherTipButtonInput} onChangeText={handleCustomPercentInputChange} value={customPercentStr} placeholder="%" keyboardType="numeric" placeholderTextColor={buttonTextColor} onSubmitEditing={handleInputSubmit} onBlur={handleInputSubmit} maxLength={5} autoFocus={true} textAlignVertical="center" />
                                 ) : (<Text style={styles.tipButtonText}>{activeButtonKey === 'other' && customPercentStr ? `${customPercentStr}%` : 'Other'}</Text>)}
                             </TouchableOpacity>
-                            <TouchableOpacity key="split" style={[ styles.tipButton, activeButtonKey === 'split' && styles.selectedTipButton, showSplitInput && activeButtonKey === 'split' && { paddingVertical: 0, paddingHorizontal: 5 } ]} onPress={handleSplitButtonPress} activeOpacity={showSplitInput && activeButtonKey === 'split' ? 1 : 0.2}>
-                                {showSplitInput && activeButtonKey === 'split' ? (
+                            <TouchableOpacity
+                                key="split"
+                                style={[ styles.tipButton, activeButtonKey === 'split' && styles.selectedTipButton, showSplitInput && activeButtonKey === 'split' && { paddingVertical: 0, paddingHorizontal: 5 }, !entitlements.hasAllThemes && { opacity: 0.6 } ]}
+                                onPress={() => { if (entitlements.hasAllThemes) { handleSplitButtonPress(); } else { router.push('/shop'); } }}
+                                activeOpacity={showSplitInput && activeButtonKey === 'split' ? 1 : 0.2}
+                            >
+                                {!entitlements.hasAllThemes ? (
+                                    <Ionicons name="lock-closed" size={24} color={buttonTextColor} />
+                                ) : showSplitInput && activeButtonKey === 'split' ? (
                                     <TextInput ref={splitInputRef} style={styles.otherTipButtonInput} onChangeText={handleSplitInputChange} value={splitByStr} placeholder="#" keyboardType="number-pad" placeholderTextColor={buttonTextColor} onSubmitEditing={handleInputSubmit} onBlur={handleInputSubmit} maxLength={2} autoFocus={true} textAlignVertical="center" />
                                 ) : (<Text style={styles.tipButtonText}>{splitByStr && Number(splitByStr) > 1 ? `Split ${splitByStr}` : 'Split'}</Text>)}
                             </TouchableOpacity>
                         </View>
                         {showTipAndTotal && (
                             <>
-                                <View style={styles.resultRow}><TouchableOpacity style={styles.roundingButton} onPress={() => handleRoundTip('down')}><Ionicons name="arrow-down-circle-outline" size={30} color={iconColor} /></TouchableOpacity><View style={styles.resultTextContainer}><Text style={styles.resultLabelText}>Tip Amount:</Text><Text style={styles.resultAmountText}>{formatCurrency(tipAmount)}</Text></View><TouchableOpacity style={styles.roundingButton} onPress={() => handleRoundTip('up')}><Ionicons name="arrow-up-circle-outline" size={30} color={iconColor} /></TouchableOpacity></View>
-                                <View style={[styles.resultRow, styles.totalContainerOverride]}><TouchableOpacity style={styles.roundingButton} onPress={() => handleRoundTotal('down')}><Ionicons name="arrow-down-circle-outline" size={30} color={iconColor} /></TouchableOpacity><View style={styles.resultTextContainer}><Text style={styles.resultLabelText}>Total Bill:</Text><Text style={styles.resultAmountText}>{formatCurrency(billAmountNum + (tipAmount || 0))}</Text></View><TouchableOpacity style={styles.roundingButton} onPress={() => handleRoundTotal('up')}><Ionicons name="arrow-up-circle-outline" size={30} color={iconColor} /></TouchableOpacity></View>
+                                <View style={styles.resultRow}>
+                                    <TouchableOpacity style={entitlements.hasAllThemes ? styles.roundingButton : styles.roundingButtonLocked} onPress={() => { if (entitlements.hasAllThemes) { handleRoundTip('down'); } else { router.push('/shop'); } }}>
+                                        {entitlements.hasAllThemes ? <Ionicons name="arrow-down-circle-outline" size={30} color={iconColor} /> : <Ionicons name="lock-closed" size={26} color={secondaryTextColor} />}
+                                    </TouchableOpacity>
+                                    <View style={styles.resultTextContainer}><Text style={styles.resultLabelText}>Tip Amount:</Text><Text style={styles.resultAmountText}>{formatCurrency(tipAmount)}</Text></View>
+                                    <TouchableOpacity style={entitlements.hasAllThemes ? styles.roundingButton : styles.roundingButtonLocked} onPress={() => { if (entitlements.hasAllThemes) { handleRoundTip('up'); } else { router.push('/shop'); } }}>
+                                        {entitlements.hasAllThemes ? <Ionicons name="arrow-up-circle-outline" size={30} color={iconColor} /> : <Ionicons name="lock-closed" size={26} color={secondaryTextColor} />}
+                                    </TouchableOpacity>
+                                </View>
+
+                                <View style={[styles.resultRow, styles.totalContainerOverride]}>
+                                    <TouchableOpacity style={entitlements.hasAllThemes ? styles.roundingButton : styles.roundingButtonLocked} onPress={() => { if (entitlements.hasAllThemes) { handleRoundTotal('down'); } else { router.push('/shop'); } }}>
+                                        {entitlements.hasAllThemes ? <Ionicons name="arrow-down-circle-outline" size={30} color={iconColor} /> : <Ionicons name="lock-closed" size={26} color={secondaryTextColor} />}
+                                    </TouchableOpacity>
+                                    <View style={styles.resultTextContainer}><Text style={styles.resultLabelText}>Total Bill:</Text><Text style={styles.resultAmountText}>{formatCurrency(billAmountNum + (tipAmount || 0))}</Text></View>
+                                    <TouchableOpacity style={entitlements.hasAllThemes ? styles.roundingButton : styles.roundingButtonLocked} onPress={() => { if (entitlements.hasAllThemes) { handleRoundTotal('up'); } else { router.push('/shop'); } }}>
+                                        {entitlements.hasAllThemes ? <Ionicons name="arrow-up-circle-outline" size={30} color={iconColor} /> : <Ionicons name="lock-closed" size={26} color={secondaryTextColor} />}
+                                    </TouchableOpacity>
+                                </View>
                             </>
                         )}
                         {showSplitResults && (
@@ -261,8 +290,20 @@ export default function HomeScreen() {
                     </ScrollView>
                 </View>
             </TouchableWithoutFeedback>
-            <View style={styles.adBannerContainer}><BannerAd unitId={adUnitId} size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER} requestOptions={{ requestNonPersonalizedAdsOnly: false }} onAdLoaded={() => console.log('Banner Ad loaded')} onAdFailedToLoad={(error) => console.error('Banner Ad failed to load: ', error)} /></View>
-            <View style={styles.bottomSafeAreaSpacer} />
+            {!entitlements.isAdFree && adUnitId ? (
+                <View>
+                    <View style={styles.adBannerContainer}>
+                        <BannerAd
+                            unitId={adUnitId}
+                            size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+                            requestOptions={{ requestNonPersonalizedAdsOnly: false, }}
+                            onAdLoaded={() => { console.log('Banner Ad loaded'); }}
+                            onAdFailedToLoad={(error) => { console.error('Banner Ad failed to load: ', error); }}
+                        />
+                    </View>
+                    <View style={styles.bottomSafeAreaSpacer} />
+                </View>
+            ) : null}
         </View>
     );
 }

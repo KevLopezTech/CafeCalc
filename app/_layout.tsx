@@ -70,7 +70,7 @@ function AppLayout() {
                 screenOptions={{
                     ...getThemedHeaderOptions(),
                     contentStyle: { backgroundColor: 'transparent' },
-                    animation: 'fade_from_bottom',
+                    animation: 'slide_from_right',
                 }}
             >
                 <Stack.Screen
@@ -148,7 +148,7 @@ export default function RootLayout() {
         <GestureHandlerRootView style={{ flex: 1 }}>
             <SafeAreaProvider>
                 <ThemeProvider>
-                    <PurchaseProvider> {/* Wrap AppLayout with PurchaseProvider */}
+                    <PurchaseProvider>
                         <AppLayout />
                     </PurchaseProvider>
                 </ThemeProvider>

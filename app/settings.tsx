@@ -58,9 +58,10 @@ export default function SettingsScreen() {
 
     const appVersion = Constants.expoConfig?.version ?? 'N/A';
     const appName = Constants.expoConfig?.name ?? 'CafeCalc';
-    // IMPORTANT: Replace these with your actual IDs from app.json or directly here
-    const appStoreId = Constants.expoConfig?.ios?.bundleIdentifier ?? 'YOUR_IOS_APP_STORE_ID_OR_BUNDLE_ID';
-    const playStoreId = Constants.expoConfig?.android?.package ?? 'YOUR_ANDROID_PACKAGE_NAME';
+    // IMPORTANT: Replace this with the numerical ID from your app's listing on App Store Connect.
+    const appStoreNumericalId = 'YOUR_IOS_APP_STORE_NUMERICAL_ID';
+    // This will pull the package name directly from your app.json
+    const playStoreId = Constants.expoConfig?.android?.package ?? 'com.chronotech.CafeCalc';
 
 
     const themeModeOptions: ThemeModeOption[] = [
@@ -82,30 +83,19 @@ export default function SettingsScreen() {
     const handleRateApp = () => {
         let storeUrl = '';
         if (Platform.OS === 'ios') {
-            // For iOS, you typically need the numerical App Store ID, not the bundle identifier for the review URL.
-            // You'll need to get this ID from App Store Connect once your app is listed.
-            // For now, using a placeholder that will likely fail but illustrates the structure.
-            const actualAppStoreNumericalId = "YOUR_APPLE_APP_ID_NUMERICAL"; // e.g., "123456789"
-            if (actualAppStoreNumericalId === "YOUR_APPLE_APP_ID_NUMERICAL") {
-                alert('iOS App Store ID not configured for rating.'); return;
+            if (appStoreNumericalId === 'YOUR_IOS_APP_STORE_NUMERICAL_ID') {
+                alert('This app is not yet available on the App Store.'); return;
             }
-            storeUrl = `itms-apps://itunes.apple.com/app/id${actualAppStoreNumericalId}?action=write-review`;
-        } else if (Platform.OS === 'android') {
-            if (playStoreId === 'YOUR_ANDROID_PACKAGE_NAME') {
-                alert('Android Package Name not configured for rating.'); return;
-            }
-            storeUrl = `market://details?id=${playStoreId}`;
+            storeUrl = `itms-apps://itunes.apple.com/app/id${appStoreNumericalId}?action=write-review`;
         } else {
-            alert('Rating is not supported on this platform.');
-            return;
+            storeUrl = `market://details?id=${playStoreId}`;
         }
 
         Linking.canOpenURL(storeUrl).then(supported => {
             if (supported) {
                 Linking.openURL(storeUrl);
             } else {
-                alert("Could not open the app store. Please try again later.");
-                console.log("Don't know how to open URI: " + storeUrl);
+                alert("Could not open the app store.");
             }
         }).catch(err => console.error('An error occurred trying to open the store URL', err));
     };
@@ -113,28 +103,18 @@ export default function SettingsScreen() {
     const handleShareApp = async () => {
         try {
             let storeLink = '';
-            let message = `Check out ${appName}! It's a great app for calculating tips.\n\n`;
-
             if (Platform.OS === 'ios') {
-                // For iOS, you typically need the numerical App Store ID for the public link.
-                const actualAppStoreNumericalId = "YOUR_APPLE_APP_ID_NUMERICAL"; // e.g., "123456789"
-                if (actualAppStoreNumericalId === "YOUR_APPLE_APP_ID_NUMERICAL") {
-                    alert('iOS App Store ID not configured for sharing.'); return;
+                if (appStoreNumericalId === 'YOUR_IOS_APP_STORE_NUMERICAL_ID') {
+                    alert('This app is not yet available on the App Store for sharing.'); return;
                 }
-                storeLink = `https://apps.apple.com/app/id${actualAppStoreNumericalId}`;
-            } else if (Platform.OS === 'android') {
-                if (playStoreId === 'YOUR_ANDROID_PACKAGE_NAME') {
-                    alert('Android Package Name not configured for sharing.'); return;
-                }
-                storeLink = `https://play.google.com/store/apps/details?id=${playStoreId}`;
+                storeLink = `https://apps.apple.com/app/id${appStoreNumericalId}`;
             } else {
-                alert('Sharing is not supported on this platform.');
-                return;
+                storeLink = `https://play.google.com/store/apps/details?id=${playStoreId}`;
             }
-            message += `Download it here: ${storeLink}`;
+            const message = `Check out ${appName}! It's a great app for calculating tips.\n\nDownload it here:\n${storeLink}`;
 
             await Share.share({
-                message: message,
+                message,
                 title: `Share ${appName}`,
                 url: storeLink, // URL is helpful for some share targets
             });
@@ -146,13 +126,13 @@ export default function SettingsScreen() {
     const handlePrivacyPolicy = () => {
         setInfoModalContent({
             title: "Privacy Policy",
-            content: "Last updated: May 22, 2025\n\nYour privacy is important to us. It is CafeCalc's policy to respect your privacy regarding any information we may collect from you through our app, CafeCalc.\n\nWe only ask for personal information when we truly need it to provide a service to you. We collect it by fair and lawful means, with your knowledge and consent. We also let you know why we’re collecting it and how it will be used.\n\nWe only retain collected information for as long as necessary to provide you with your requested service. What data we store, we’ll protect within commercially acceptable means to prevent loss and theft, as well as unauthorized access, disclosure, copying, use or modification.\n\nWe don’t share any personally identifying information publicly or with third-parties, except when required to by law.\n\nOur app may link to external sites that are not operated by us. Please be aware that we have no control over the content and practices of these sites, and cannot accept responsibility or liability for their respective privacy policies.\n\nYou are free to refuse our request for your personal information, with the understanding that we may be unable to provide you with some ofyour desired services.\n\nYour continued use of our app will be regarded as acceptance of our practices around privacy and personal information. If you have any questions about how we handle user data and personal information, feel free to contact us.\n\nThis policy is effective as of May 22, 2025."
+            content: "Last updated: June 22, 2025\n\nChronoTech built the CafeCalc app as an Ad Supported app. This service is provided by ChronoTech at no cost and is intended for use as is.\n\nThis page is used to inform visitors regarding our policies with the collection, use, and disclosure of Personal Information if anyone decided to use our Service.\n\nIf you choose to use our Service, then you agree to the collection and use of information in relation to this policy. The Personal Information that we collect is used for providing and improving the Service. We will not use or share your information with anyone except as described in this Privacy Policy.\n\nThe app does use third-party services that may collect information used to identify you. Link to the privacy policy of third-party service providers used by the app:\n\n- Google AdMob\n\nWe want to inform you that whenever you use our Service, in a case of an error in the app we collect data and information (through third-party products) on your phone called Log Data. This Log Data may include information such as your device Internet Protocol (“IP”) address, device name, operating system version, the configuration of the app when utilizing our Service, the time and date of your use of the Service, and other statistics.\n\nWe value your trust in providing us your Personal Information, thus we are striving to use commercially acceptable means of protecting it. But remember that no method of transmission over the internet, or method of electronic storage is 100% secure and reliable, and we cannot guarantee its absolute security.\n\nThis Service does not address anyone under the age of 13. We do not knowingly collect personally identifiable information from children under 13 years of age. In the case we discover that a child under 13 has provided us with personal information, we immediately delete this from our servers. If you are a parent or guardian and you are aware that your child has provided us with personal information, please contact us so that we will be able to do the necessary actions.\n\nWe may update our Privacy Policy from time to time. Thus, you are advised to review this page periodically for any changes. We will notify you of any changes by posting the new Privacy Policy on this page. These changes are effective immediately after they are posted on this page.\n\nIf you have any questions or suggestions about our Privacy Policy, do not hesitate to contact us at [Your Contact Email]."
         });
     };
     const handleTermsOfService = () => {
         setInfoModalContent({
             title: "Terms of Service",
-            content: "Last updated: May 22, 2025\n\nPlease read these terms and conditions carefully before using Our Service.\n\nInterpretation and Definitions...\n\n(Your full Terms of Service text would go here. This is just a placeholder. Consider using a terms of service generator or consulting a legal professional for your specific needs.)\n\nBy using CafeCalc, you signify your acceptance of these terms. If you do not agree to these terms, please do not use our app.\n\n**1. Acceptance of Terms**\nBy accessing and using CafeCalc (\"the App\"), you accept and agree to be bound by the terms and provision of this agreement. \n\n**2. Use of the App**\nThe App is provided for personal, non-commercial use to calculate tips. You agree not to use the App for any illegal or unauthorized purpose.\n\n**3. Intellectual Property**\nThe App and its original content, features, and functionality are and will remain the exclusive property of ChronoTech and its licensors.\n\n**4. Limitation of Liability**\nIn no event shall ChronoTech, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your access to or use of or inability to access or use the App.\n\n**5. Changes to Terms**\nWe reserve the right, at our sole discretion, to modify or replace these Terms at any time. \n\n**6. Contact Us**\nIf you have any questions about these Terms, please contact us at [Your Contact Email/Method]."
+            content: "Last updated: June 22, 2025\n\nBy downloading or using the CafeCalc app, these terms will automatically apply to you – you should make sure therefore that you read them carefully before using the app.\n\nYou’re not allowed to copy or modify the app, any part of the app, or our trademarks in any way. You’re not allowed to attempt to extract the source code of the app, and you also shouldn’t try to translate the app into other languages or make derivative versions. The app itself, and all the trademarks, copyright, database rights, and other intellectual property rights related to it, still belong to ChronoTech.\n\nChronoTech is committed to ensuring that the app is as useful and efficient as possible. For that reason, we reserve the right to make changes to the app or to charge for its services, at any time and for any reason. We will never charge you for the app or its services without making it very clear to you exactly what you’re paying for.\n\nThe CafeCalc app stores and processes personal data that you have provided to us, to provide our Service. It’s your responsibility to keep your phone and access to the app secure.\n\nWith respect to ChronoTech’s responsibility for your use of the app, when you’re using the app, it’s important to bear in mind that although we endeavor to ensure that it is updated and correct at all times, we do rely on third parties to provide information to us so that we can make it available to you. ChronoTech accepts no liability for any loss, direct or indirect, you experience as a result of relying wholly on this functionality of the app.\n\nWe may update our Terms and Conditions from time to time. Thus, you are advised to review this page periodically for any changes. We will notify you of any changes by posting the new Terms and Conditions on this page. These changes are effective immediately after they are posted on this page.\n\nIf you have any questions or suggestions about our Terms and Conditions, do not hesitate to contact us at [Your Contact Email]."
         });
     };
 
@@ -195,137 +175,39 @@ export default function SettingsScreen() {
             >
                 <Stack.Screen options={{ title: 'Settings' }} />
 
-                {/* Appearance Mode Section */}
-                <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: textColor }]}>Appearance Mode</Text>
-                    <View style={styles.optionsRowContainer}>
-                        {themeModeOptions.map(opt => renderThemeModeOption(opt.value, opt.label))}
-                    </View>
-                </View>
+                <View style={styles.section}><Text style={[styles.sectionTitle, { color: textColor }]}>Appearance Mode</Text><View style={styles.optionsRowContainer}>{themeModeOptions.map(opt => renderThemeModeOption(opt.value, opt.label))}</View></View>
                 <View style={[styles.separator, { backgroundColor: separatorColor }]} />
-
-                {/* Theme Color Section */}
-                <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: textColor }]}>Theme Color</Text>
-                    <TouchableOpacity
-                        style={[styles.dropdownHeader, { backgroundColor: settingsButtonColor, borderColor: separatorColor }]}
-                        onPress={() => setIsAccentModalVisible(true)}
-                    >
-                        <View style={styles.dropdownHeaderContent}>
-                            <View style={[styles.colorSwatch, { backgroundColor: currentAccentSelection?.colorSample }]} />
-                            <Text style={[styles.dropdownHeaderText, { color: settingsButtonTextColor }]}>
-                                {currentAccentSelection?.label}
-                            </Text>
-                        </View>
-                        <Ionicons name="chevron-down-outline" size={22} color={iconColor} />
-                    </TouchableOpacity>
-                </View>
+                <View style={styles.section}><Text style={[styles.sectionTitle, { color: textColor }]}>Theme Color</Text><TouchableOpacity style={[styles.dropdownHeader, { backgroundColor: settingsButtonColor, borderColor: separatorColor }]} onPress={() => setIsAccentModalVisible(true)}><View style={styles.dropdownHeaderContent}><View style={[styles.colorSwatch, { backgroundColor: currentAccentSelection?.colorSample }]} /><Text style={[styles.dropdownHeaderText, { color: settingsButtonTextColor }]}>{currentAccentSelection?.label}</Text></View><Ionicons name="chevron-down-outline" size={22} color={iconColor} /></TouchableOpacity></View>
                 <View style={[styles.separator, { backgroundColor: separatorColor }]} />
-
-                {/* About Section */}
-                <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: textColor }]}>About</Text>
-                    <View style={[styles.infoRow, { borderBottomColor: separatorColor }]}>
-                        <Text style={[styles.infoLabel, { color: secondaryTextColor }]}>App Name</Text>
-                        <Text style={[styles.infoValue, { color: textColor }]}>{appName}</Text>
-                    </View>
-                    <View style={[styles.infoRow, { borderBottomColor: separatorColor }]}>
-                        <Text style={[styles.infoLabel, { color: secondaryTextColor }]}>App Version</Text>
-                        <Text style={[styles.infoValue, { color: textColor }]}>{appVersion}</Text>
-                    </View>
-                    <View style={[styles.infoRow, styles.lastInfoRow]}>
-                        <Text style={[styles.infoLabel, { color: secondaryTextColor }]}>Developer</Text>
-                        <Text style={[styles.infoValue, { color: textColor }]}>ChronoTech</Text>
-                    </View>
-                </View>
+                <View style={styles.section}><Text style={[styles.sectionTitle, { color: textColor }]}>About</Text><View style={[styles.infoRow, { borderBottomColor: separatorColor }]}><Text style={[styles.infoLabel, { color: secondaryTextColor }]}>App Name</Text><Text style={[styles.infoValue, { color: textColor }]}>{appName}</Text></View><View style={[styles.infoRow, { borderBottomColor: separatorColor }]}><Text style={[styles.infoLabel, { color: secondaryTextColor }]}>App Version</Text><Text style={[styles.infoValue, { color: textColor }]}>{appVersion}</Text></View><View style={[styles.infoRow, styles.lastInfoRow]}><Text style={[styles.infoLabel, { color: secondaryTextColor }]}>Developer</Text><Text style={[styles.infoValue, { color: textColor }]}>ChronoTech</Text></View></View>
                 <View style={[styles.separator, { backgroundColor: separatorColor }]} />
-
-
-                {/* Support & Feedback Section */}
-                <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: textColor }]}>Support & Feedback</Text>
-                    <TouchableOpacity style={styles.linkButton} onPress={handleRateApp}>
-                        <Ionicons name="star-outline" size={22} color={iconColor} style={styles.linkIcon} />
-                        <Text style={[styles.linkText, { color: textColor }]}>Rate {appName}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.linkButton} onPress={handleShareApp}>
-                        <Ionicons name="share-social-outline" size={22} color={iconColor} style={styles.linkIcon} />
-                        <Text style={[styles.linkText, { color: textColor }]}>Share {appName}</Text>
-                    </TouchableOpacity>
-                </View>
+                <View style={styles.section}><Text style={[styles.sectionTitle, { color: textColor }]}>Support & Feedback</Text><TouchableOpacity style={styles.linkButton} onPress={handleRateApp}><Ionicons name="star-outline" size={22} color={iconColor} style={styles.linkIcon} /><Text style={[styles.linkText, { color: textColor }]}>Rate {appName}</Text></TouchableOpacity><TouchableOpacity style={styles.linkButton} onPress={handleShareApp}><Ionicons name="share-social-outline" size={22} color={iconColor} style={styles.linkIcon} /><Text style={[styles.linkText, { color: textColor }]}>Share {appName}</Text></TouchableOpacity></View>
                 <View style={[styles.separator, { backgroundColor: separatorColor }]} />
-
-                {/* Legal Section */}
-                <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: textColor }]}>Legal</Text>
-                    <TouchableOpacity style={styles.linkButton} onPress={handlePrivacyPolicy}>
-                        <Ionicons name="shield-checkmark-outline" size={22} color={iconColor} style={styles.linkIcon} />
-                        <Text style={[styles.linkText, { color: textColor }]}>Privacy Policy</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.linkButton} onPress={handleTermsOfService}>
-                        <Ionicons name="document-text-outline" size={22} color={iconColor} style={styles.linkIcon} />
-                        <Text style={[styles.linkText, { color: textColor }]}>Terms of Service</Text>
-                    </TouchableOpacity>
-                </View>
+                <View style={styles.section}><Text style={[styles.sectionTitle, { color: textColor }]}>Legal</Text><TouchableOpacity style={styles.linkButton} onPress={handlePrivacyPolicy}><Ionicons name="shield-checkmark-outline" size={22} color={iconColor} style={styles.linkIcon} /><Text style={[styles.linkText, { color: textColor }]}>Privacy Policy</Text></TouchableOpacity><TouchableOpacity style={styles.linkButton} onPress={handleTermsOfService}><Ionicons name="document-text-outline" size={22} color={iconColor} style={styles.linkIcon} /><Text style={[styles.linkText, { color: textColor }]}>Terms of Service</Text></TouchableOpacity></View>
                 <View style={[styles.separator, { backgroundColor: separatorColor }]} />
             </ScrollView>
 
-            {/* Accent Color Picker Modal */}
-            <Modal
-                animationType="fade"
-                transparent={true}
-                visible={isAccentModalVisible}
-                onRequestClose={() => setIsAccentModalVisible(false)}
-            >
+            <Modal animationType="fade" transparent={true} visible={isAccentModalVisible} onRequestClose={() => setIsAccentModalVisible(false)}>
                 <Pressable style={styles.modalOverlay} onPress={() => setIsAccentModalVisible(false)}>
                     <View style={[styles.modalContent, { backgroundColor: inputBackgroundColor, borderColor: separatorColor }]}>
                         <Text style={[styles.modalTitle, { color: textColor }]}>Select Theme Color</Text>
                         {accentColorOptions.map((option) => (
-                            <TouchableOpacity
-                                key={option.value}
-                                style={[
-                                    styles.modalOption,
-                                    { backgroundColor: settingsButtonColor },
-                                    accentColorPreference === option.value && { borderColor: primaryColor, borderWidth: 2 }
-                                ]}
-                                onPress={() => handleAccentColorSelect(option.value)}
-                            >
+                            <TouchableOpacity key={option.value} style={[ styles.modalOption, { backgroundColor: settingsButtonColor }, accentColorPreference === option.value && { borderColor: primaryColor, borderWidth: 2 } ]} onPress={() => handleAccentColorSelect(option.value)}>
                                 <View style={[styles.colorSwatch, { backgroundColor: option.colorSample }]} />
                                 <Text style={[styles.modalOptionText, { color: settingsButtonTextColor }]}>{option.label}</Text>
-                                {accentColorPreference === option.value && (
-                                    <Ionicons name="checkmark-circle-outline" size={22} color={primaryColor} style={styles.checkmarkIconSmall} />
-                                )}
+                                {accentColorPreference === option.value && ( <Ionicons name="checkmark-circle-outline" size={22} color={primaryColor} style={styles.checkmarkIconSmall} /> )}
                             </TouchableOpacity>
                         ))}
-                        <TouchableOpacity
-                            style={[styles.modalCloseButton, {backgroundColor: settingsButtonColor, marginTop: 10}]}
-                            onPress={() => setIsAccentModalVisible(false)}
-                        >
-                            <Text style={[styles.modalCloseButtonText, {color: settingsButtonTextColor}]}>Cancel</Text>
-                        </TouchableOpacity>
+                        <TouchableOpacity style={[styles.modalCloseButton, {backgroundColor: settingsButtonColor, marginTop: 10}]} onPress={() => setIsAccentModalVisible(false)}><Text style={[styles.modalCloseButtonText, {color: settingsButtonTextColor}]}>Cancel</Text></TouchableOpacity>
                     </View>
                 </Pressable>
             </Modal>
-
-            {/* Info Modal for Privacy Policy / Terms of Service */}
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={!!infoModalContent}
-                onRequestClose={() => setInfoModalContent(null)}
-            >
+            <Modal animationType="slide" transparent={true} visible={!!infoModalContent} onRequestClose={() => setInfoModalContent(null)}>
                 <Pressable style={styles.modalOverlay} onPress={() => setInfoModalContent(null)}>
                     <View style={[styles.modalContent, { backgroundColor: inputBackgroundColor, borderColor: separatorColor, maxHeight: '80%' }]}>
                         <Text style={[styles.modalTitle, { color: modalTextColor }]}>{infoModalContent?.title}</Text>
-                        <ScrollView style={styles.infoModalScrollView}>
-                            <Text style={[styles.infoModalText, { color: modalTextColor }]}>{infoModalContent?.content}</Text>
-                        </ScrollView>
-                        <TouchableOpacity
-                            style={[styles.modalCloseButton, {backgroundColor: settingsButtonColor, marginTop: 15}]}
-                            onPress={() => setInfoModalContent(null)}
-                        >
-                            <Text style={[styles.modalCloseButtonText, {color: settingsButtonTextColor}]}>Close</Text>
-                        </TouchableOpacity>
+                        <ScrollView style={styles.infoModalScrollView}><Text style={[styles.infoModalText, { color: modalTextColor }]}>{infoModalContent?.content}</Text></ScrollView>
+                        <TouchableOpacity style={[styles.modalCloseButton, {backgroundColor: settingsButtonColor, marginTop: 15}]} onPress={() => setInfoModalContent(null)}><Text style={[styles.modalCloseButtonText, {color: settingsButtonTextColor}]}>Close</Text></TouchableOpacity>
                     </View>
                 </Pressable>
             </Modal>
@@ -333,163 +215,37 @@ export default function SettingsScreen() {
     );
 }
 
+// Styles remain the same
 const styles = StyleSheet.create({
-    outermostContainer: {
-        flex: 1,
-        backgroundColor: 'transparent',
-    },
-    container: {
-        flex: 1,
-        backgroundColor: 'transparent',
-    },
-    scrollContentContainer: {
-        paddingBottom: 20,
-    },
-    section: {
-        paddingHorizontal: 20,
-        paddingVertical: 15,
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        marginBottom: 15,
-    },
-    optionsRowContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        marginBottom: 10,
-    },
-    selectableButton: {
-        paddingVertical: 12,
-        paddingHorizontal: 10,
-        borderRadius: 8,
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'row',
-        minWidth: 100,
-        marginHorizontal: 5,
-        minHeight: 50,
-    },
-    selectableButtonText: {
-        fontSize: 16,
-        fontWeight: '500',
-    },
-    checkmarkIcon: {
-        marginLeft: 'auto',
-        paddingLeft: 8,
-    },
-    checkmarkIconSmall: {
-        marginLeft: 'auto',
-        paddingLeft: 8,
-    },
-    colorSwatch: {
-        width: 20,
-        height: 20,
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: '#888',
-        marginRight: 10,
-    },
-    dropdownHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 15,
-        paddingHorizontal: 15,
-        borderRadius: 8,
-        borderWidth: 1,
-    },
-    dropdownHeaderContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    dropdownHeaderText: {
-        fontSize: 16,
-        fontWeight: '500',
-    },
-    modalOverlay: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalContent: {
-        width: '90%',
-        maxWidth: 400,
-        padding: 20,
-        borderRadius: 10,
-        borderWidth: 1,
-        alignItems: 'stretch',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-    },
-    modalTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginBottom: 15,
-        textAlign: 'center',
-    },
-    modalOption: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 15,
-        paddingHorizontal: 10,
-        borderRadius: 8,
-        marginBottom: 10,
-    },
-    modalOptionText: {
-        fontSize: 16,
-        fontWeight: '500',
-    },
-    modalCloseButton: {
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        borderRadius: 8,
-        alignItems: 'center',
-    },
-    modalCloseButtonText: {
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    infoModalScrollView: {
-        maxHeight: '70%',
-        marginBottom: 15,
-    },
-    infoModalText: {
-        fontSize: 15,
-        lineHeight: 22,
-    },
-    infoRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-    },
-    lastInfoRow: {
-        borderBottomWidth: 0,
-    },
-    infoLabel: {
-        fontSize: 16,
-    },
-    infoValue: {
-        fontSize: 16,
-        fontWeight: '500',
-    },
-    separator: {
-        height: 1,
-    },
-    linkButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 12,
-    },
-    linkIcon: {
-        marginRight: 15,
-    },
-    linkText: {
-        fontSize: 16,
-    },
+    outermostContainer: { flex: 1, backgroundColor: 'transparent', },
+    container: { flex: 1, backgroundColor: 'transparent', },
+    scrollContentContainer: { paddingBottom: 20, },
+    section: { paddingHorizontal: 20, paddingVertical: 15, },
+    sectionTitle: { fontSize: 18, fontWeight: '600', marginBottom: 15, },
+    optionsRowContainer: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 10, },
+    selectableButton: { paddingVertical: 12, paddingHorizontal: 10, borderRadius: 8, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', minWidth: 100, marginHorizontal: 5, minHeight: 50, },
+    selectableButtonText: { fontSize: 16, fontWeight: '500', },
+    checkmarkIcon: { marginLeft: 'auto', paddingLeft: 8, },
+    checkmarkIconSmall: { marginLeft: 'auto', paddingLeft: 8, },
+    colorSwatch: { width: 20, height: 20, borderRadius: 10, borderWidth: 1, borderColor: '#888', marginRight: 10, },
+    dropdownHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 15, paddingHorizontal: 15, borderRadius: 8, borderWidth: 1, },
+    dropdownHeaderContent: { flexDirection: 'row', alignItems: 'center', },
+    dropdownHeaderText: { fontSize: 16, fontWeight: '500', },
+    modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)', },
+    modalContent: { width: '90%', maxWidth: 400, padding: 20, borderRadius: 10, borderWidth: 1, alignItems: 'stretch', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84, elevation: 5, },
+    modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 15, textAlign: 'center', },
+    modalOption: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, paddingHorizontal: 10, borderRadius: 8, marginBottom: 10, },
+    modalOptionText: { fontSize: 16, fontWeight: '500', },
+    modalCloseButton: { paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, alignItems: 'center', },
+    modalCloseButtonText: { fontSize: 16, fontWeight: '600', },
+    infoModalScrollView: { maxHeight: '70%', marginBottom: 15, },
+    infoModalText: { fontSize: 15, lineHeight: 22, },
+    infoRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, },
+    lastInfoRow: { borderBottomWidth: 0, },
+    infoLabel: { fontSize: 16, },
+    infoValue: { fontSize: 16, fontWeight: '500', },
+    separator: { height: 1, },
+    linkButton: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, },
+    linkIcon: { marginRight: 15, },
+    linkText: { fontSize: 16, },
 });

@@ -13,20 +13,16 @@ import {
     purchaseUpdatedListener,
     Product,
     Purchase,
+    PurchaseError,
 } from 'react-native-iap';
 
-// IMPORTANT: Update these to match your Product IDs in the stores.
+// IMPORTANT: These MUST match the Product IDs you create in the app stores.
 const IAP_SKUS = Platform.select({
     ios: [
         // 'com.chronotech.cafecalc.adfree',
-        // 'com.chronotech.cafecalc.theme.amethyst',
-        // 'com.chronotech.cafecalc.allthemes',
-        // ... add all your other iOS theme SKUs
     ],
     android: [
-        'adfree',
-        'premiumpack01',
-        // ... add all your other Android theme SKUs
+        'adfree', 'premiumpack01',
     ],
 }) || [];
 
@@ -73,31 +69,32 @@ export const PurchaseProvider: React.FC<{ children: ReactNode }> = ({ children }
     };
 
     const grantEntitlements = (purchaseHistory: Purchase[]) => {
-        const newEntitlements = { ...entitlements };
-
-        for (const purchase of purchaseHistory) {
-            const { productId } = purchase;
-            console.log(`Granting entitlement for: ${productId}`);
-
-            newEntitlements.isAdFree = true;
-
-            if (productId.includes('allthemes')) {
-                newEntitlements.hasAllThemes = true;
-            } else if (productId.includes('theme.')) { // iOS format
-                const themeKey = productId.split('theme.').pop();
-                if (themeKey && !newEntitlements.unlockedThemes.includes(themeKey)) {
-                    newEntitlements.unlockedThemes.push(themeKey);
-                }
-            } else if (productId.includes('theme_')) { // Android format
-                const themeKey = productId.split('theme_').pop();
-                if (themeKey && !newEntitlements.unlockedThemes.includes(themeKey)) {
-                    newEntitlements.unlockedThemes.push(themeKey);
+        setEntitlements(currentEntitlements => {
+            const newEntitlements = { ...currentEntitlements };
+            for (const purchase of purchaseHistory) {
+                if (purchase.transactionReceipt) {
+                    const { productId } = purchase;
+                    console.log(`[IAP] Granting entitlement for: ${productId}`);
+                    newEntitlements.isAdFree = true;
+                    if (productId.includes('premiumpack01')) {
+                        newEntitlements.hasAllThemes = true;
+                    } else if (productId.includes('theme.')) {
+                        const themeKey = productId.split('theme.').pop();
+                        if (themeKey && !newEntitlements.unlockedThemes.includes(themeKey)) {
+                            newEntitlements.unlockedThemes.push(themeKey);
+                        }
+                    } else if (productId.includes('theme_')) {
+                        const themeKey = productId.split('theme_').pop();
+                        if (themeKey && !newEntitlements.unlockedThemes.includes(themeKey)) {
+                            newEntitlements.unlockedThemes.push(themeKey);
+                        }
+                    }
                 }
             }
-        }
-
-        setEntitlements(newEntitlements);
-        saveEntitlements(newEntitlements);
+            console.log("[IAP] Updating and saving entitlements:", newEntitlements);
+            saveEntitlements(newEntitlements);
+            return newEntitlements;
+        });
     };
 
     useEffect(() => {
@@ -105,40 +102,52 @@ export const PurchaseProvider: React.FC<{ children: ReactNode }> = ({ children }
         let purchaseErrorSubscription: any = null;
 
         const initializeIAP = async () => {
+            console.log('[IAP] Step 1: Initializing...');
             await loadEntitlements();
             try {
-                await initConnection();
-                // For Amazon, you may need this: await flushFailedPurchasesCachedAsPendingAndroid();
-                console.log('IAP Connection Initialized.');
+                console.log('[IAP] Step 2: Calling initConnection()...');
+                const connectionResult = await initConnection();
+                console.log('[IAP] Step 3: initConnection result:', connectionResult);
 
+                // This listener is for purchases that are pending when the app starts
+                // e.g., if the app closes before a purchase is finished.
                 purchaseUpdateSubscription = purchaseUpdatedListener(async (purchase: Purchase) => {
-                    console.log('purchaseUpdatedListener', purchase);
+                    console.log('[IAP] purchaseUpdatedListener triggered.', purchase);
                     const receipt = purchase.transactionReceipt;
                     if (receipt) {
                         try {
-                            // Finish transaction (acknowledge purchase)
-                            await finishTransaction({ purchase, isConsumable: false });
-                            console.log(`Transaction for ${purchase.productId} finished.`);
-                            // Grant entitlements after successful transaction finish
                             grantEntitlements([purchase]);
+                            await finishTransaction({ purchase, isConsumable: false });
+                            console.log(`[IAP] Transaction for ${purchase.productId} finished.`);
                         } catch (error) {
-                            console.error('Failed to finish transaction.', error);
+                            console.error('[IAP] Failed to finish transaction.', error);
                         }
                     }
                 });
 
-                purchaseErrorSubscription = purchaseErrorListener((error) => {
-                    console.warn('purchaseErrorListener', error);
+                purchaseErrorSubscription = purchaseErrorListener((error: PurchaseError) => {
+                    console.warn('[IAP] purchaseErrorListener:', error);
                 });
 
-                console.log('Fetching products:', IAP_SKUS);
-                const fetchedProducts = await getProducts({ skus: IAP_SKUS });
-                console.log('Fetched products:', fetchedProducts);
-                setProducts(fetchedProducts);
+                if (IAP_SKUS.length > 0) {
+                    console.log('[IAP] Step 4: Fetching products with getProducts()...');
+                    try {
+                        const fetchedProducts = await getProducts({ skus: IAP_SKUS });
+                        console.log('[IAP] Step 5: Fetched products response:', fetchedProducts);
+                        if (fetchedProducts && fetchedProducts.length > 0) {
+                            setProducts(fetchedProducts);
+                        }
+                    } catch (error) {
+                        console.error("[IAP] Could not get products from the store.", error);
+                    }
+                } else {
+                    console.log("[IAP] Step 4: No IAP SKUs to fetch for this platform.");
+                }
 
             } catch (error) {
-                console.error('Error during IAP initialization:', error);
+                console.error('[IAP] Error during IAP initialization:', error);
             } finally {
+                console.log('[IAP] Step 6: Initialization complete. Setting isIAPReady to true.');
                 setIsIAPReady(true);
             }
         };
@@ -149,11 +158,11 @@ export const PurchaseProvider: React.FC<{ children: ReactNode }> = ({ children }
             purchaseUpdateSubscription?.remove();
             purchaseErrorSubscription?.remove();
             endConnection();
+            console.log('[IAP] Connection Ended.');
         };
     }, []);
 
     const purchaseItem = async (sku: string) => {
-        console.log("Attempting to purchase:", sku);
         try {
             await requestPurchase({ skus: [sku] });
         } catch (error) {
@@ -162,11 +171,9 @@ export const PurchaseProvider: React.FC<{ children: ReactNode }> = ({ children }
     };
 
     const restorePurchases = async () => {
-        console.log("Attempting to restore purchases...");
         try {
             const purchases = await getAvailablePurchases();
             if (purchases && purchases.length > 0) {
-                console.log("Found purchases to restore:", purchases.map(p => p.productId));
                 grantEntitlements(purchases);
                 alert("Your previous purchases have been successfully restored!");
             } else {
