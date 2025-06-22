@@ -99,6 +99,8 @@
       [
         "expo-build-properties", {
         "android": {
+          "enableProguardInReleaseBuilds": true,
+          "extraProguardRules": "-keep class org.json.** { *; }",
           "gradleProperties": [
             {
               "type": "property",
