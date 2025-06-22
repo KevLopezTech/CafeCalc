@@ -4,7 +4,7 @@ import {ImageSourcePropType} from "react-native";
 
 export type ColorScheme = 'light' | 'dark';
 // Reordered: 'default' first, then alphabetical
-export type AccentColorName = 'default' | 'classicCoffee' |'amethyst' | 'azul' | 'beach' | 'rainforest' | 'solar' | 'sunset' | 'cake';
+export type AccentColorName = 'default' | 'classicCoffee' |'amethyst' | 'azul' | 'beach' | 'rainforest' | 'solar' | 'sunset' | 'cake' | 'diamond';
 
 // Reordered to match AccentColorName
 export const AccentColorLabels: Record<AccentColorName, string> = {
@@ -17,6 +17,7 @@ export const AccentColorLabels: Record<AccentColorName, string> = {
   solar: 'Solar Flare',
   sunset: 'Sunset',
   cake: 'Cake',
+  diamond: 'Diamond'
 };
 
 export type ColorRole =
@@ -244,6 +245,64 @@ export const AppThemes: Record<AccentColorName, Record<ColorScheme, ThemePalette
             headerText: '#F48FB1', // Light Pink header text
             headerBackground: '#4E342E', // Matches background
             backgroundImage: require("@/assets/images/themeBGs/SweetWallpaper.png"),
+        },
+    },
+    diamond: { // New Diamond Theme
+        light: {
+            text: '#2F4F4F', // Dark Slate Gray
+            background: '#FFFFFF', // White
+            backgroundGradientEnd: '#E0E0E0', // Light Grey
+            secondaryText: '#708090', // Slate Gray
+            inputBackground: '#F5F5F5',
+            inputBorder: '#B0C4DE', // Light Steel Blue
+            inputText: '#2F4F4F',
+            buttonText: '#FFFFFF',
+            resultBackground: '#F5F5F5',
+            resultBorder: '#DCDCDC',
+            totalBackground: '#E8E8E8',
+            totalBorder: '#B0C4DE',
+            dollarSign: '#708090',
+            placeholderText: '#778899', // Light Slate Gray
+            separator: '#DCDCDC',
+            settingsButton: '#F5F5F5',
+            settingsButtonText: '#2F4F4F',
+            tint: '#00BFFF', // Deep Sky Blue
+            primary: '#00BFFF',
+            buttonBackground: '#00BFFF',
+            selectedButtonBackground: '#1E90FF', // Dodger Blue
+            selectedButtonBorder: '#00BFFF',
+            icon: '#00BFFF',
+            headerText: '#00BFFF',
+            headerBackground: '#FFFFFF',
+            backgroundImage: require("@/assets/images/themeBGs/DiamondWallpaper.png")
+        },
+        dark: {
+            text: '#E0FFFF', // Light Cyan
+            background: '#000000', // Black
+            backgroundGradientEnd: '#1A1A1A', // Very Dark Grey
+            secondaryText: '#A9A9A9', // Dark Gray
+            inputBackground: '#1E1E1E',
+            inputBorder: '#4682B4', // Steel Blue
+            inputText: '#E0FFFF',
+            buttonText: '#FFFFFF',
+            resultBackground: '#1E1E1E',
+            resultBorder: '#4682B4',
+            totalBackground: '#121212',
+            totalBorder: '#4682B4',
+            dollarSign: '#A9A9A9',
+            placeholderText: '#708090', // Slate Gray
+            separator: '#4682B4',
+            settingsButton: '#1E1E1E',
+            settingsButtonText: '#E0FFFF',
+            tint: '#87CEEB', // Sky Blue
+            primary: '#87CEEB',
+            buttonBackground: '#87CEEB',
+            selectedButtonBackground: '#4682B4', // Steel Blue
+            selectedButtonBorder: '#87CEEB',
+            icon: '#87CEEB',
+            headerText: '#87CEEB',
+            headerBackground: '#000000',
+            backgroundImage: require("@/assets/images/themeBGs/DiamondWallpaper.png")
         },
     },
 };

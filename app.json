@@ -33,7 +33,8 @@
     },
     "plugins": [
       "expo-router",
-      ["react-native-google-mobile-ads",
+      [
+        "react-native-google-mobile-ads",
         {
           "androidAppId": "ca-app-pub-3213905360913918~3763554955",
           "iosAppId": "ca-app-pub-3213905360913918~3763554955",
@@ -88,8 +89,18 @@
             "3rd42ekr43.skadnetwork",
             "97r2b46745.skadnetwork",
             "3qcr597p9d.skadnetwork"
-            ]
+          ]
         }
+      ],
+      "react-native-iap",
+      [
+        "expo-build-properties", {
+        "android": {
+          "missingDimensionStrategy": [
+            { "dimension": "store", "flavor": "play" }
+          ]
+        }
+      }
       ]
     ]
   }

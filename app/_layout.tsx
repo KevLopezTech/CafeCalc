@@ -7,12 +7,13 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useEffect } from 'react';
 import { Platform, TouchableOpacity, View, StyleSheet, ImageBackground } from 'react-native';
 import 'react-native-reanimated';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
-import { useThemeColor } from '@/hooks/useThemeColor';
+import { PurchaseProvider } from '@/contexts/PurchaseContexts'; // Import the new PurchaseProvider
 import { getThemeColors } from '@/constants/Colors';
 
 type ScreenOptionsProps = {
@@ -30,7 +31,7 @@ function AppLayout() {
     const {
         icon,
         headerText,
-        headerBackground: headerBackgroundColor, // Get the header background color
+        headerBackground: headerBackgroundColor,
         background: gradientStartColor,
         backgroundGradientEnd: gradientEndColor,
     } = currentPalette;
@@ -52,11 +53,9 @@ function AppLayout() {
     }
 
     const getThemedHeaderOptions = (): Partial<NativeStackNavigationOptions> => ({
-        headerTransparent: true, // This is still necessary for the layout
+        headerTransparent: true,
         headerStyle: {
-            // Apply the themed color with alpha transparency.
-            // 'AA' is ~66% opaque, '80' is ~50% opaque. Let's use 'AA'. F2 95
-            backgroundColor: headerBackgroundColor + 'CC',
+            backgroundColor: headerBackgroundColor + 'AA', // Semi-transparent header
         },
         headerTintColor: headerText,
         headerTitleStyle: {
@@ -65,14 +64,13 @@ function AppLayout() {
         },
     });
 
-    // A component to hold the navigator, to be placed inside the background components
     const LayoutContent = () => (
         <NavThemeProvider value={effectiveColorScheme === 'dark' ? DarkTheme : DefaultTheme}>
             <Stack
                 screenOptions={{
                     ...getThemedHeaderOptions(),
                     contentStyle: { backgroundColor: 'transparent' },
-                    animation: 'slide_from_right'
+                    animation: 'fade_from_bottom',
                 }}
             >
                 <Stack.Screen
@@ -119,7 +117,6 @@ function AppLayout() {
     );
 
     return (
-        // The LinearGradient is now the permanent base layer
         <LinearGradient
             colors={[gradientStartColor, gradientEndColor]}
             style={[
@@ -131,19 +128,15 @@ function AppLayout() {
                 }
             ]}
         >
-            {/* Conditionally render the ImageBackground on top of the gradient */}
             {currentPalette.backgroundImage ? (
                 <ImageBackground
                     source={currentPalette.backgroundImage}
                     resizeMode="cover"
                     style={styles.imageBackground}
-                    // You can add opacity to the image itself to blend it with the gradient
-                    // imageStyle={{ opacity: 0.5 }}
                 >
                     <LayoutContent />
                 </ImageBackground>
             ) : (
-                // If there's no image, just render the content directly on the gradient
                 <LayoutContent />
             )}
         </LinearGradient>
@@ -152,19 +145,23 @@ function AppLayout() {
 
 export default function RootLayout() {
     return (
-        <SafeAreaProvider>
-            <ThemeProvider>
-                <AppLayout />
-            </ThemeProvider>
-        </SafeAreaProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+            <SafeAreaProvider>
+                <ThemeProvider>
+                    <PurchaseProvider> {/* Wrap AppLayout with PurchaseProvider */}
+                        <AppLayout />
+                    </PurchaseProvider>
+                </ThemeProvider>
+            </SafeAreaProvider>
+        </GestureHandlerRootView>
     );
 }
 
 const styles = StyleSheet.create({
-    backgroundWrapper: { // Style for the base LinearGradient
+    backgroundWrapper: {
         flex: 1,
     },
-    imageBackground: { // Style for the ImageBackground that overlays the gradient
+    imageBackground: {
         flex: 1,
     },
 });
