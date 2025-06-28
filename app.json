@@ -16,10 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.chronotech.CafeCalc",
-      "buildNumber": "1",
-      "config": {
-        "googleMobileAdsAppId": "ca-app-pub-3213905360913918~3763554955"
-      }
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
@@ -28,10 +25,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.chronotech.CafeCalc",
-      "versionCode": 7,
-      "config": {
-        "googleMobileAdsAppId": "ca-app-pub-3213905360913918~3763554955"
-      }
+      "versionCode": 7
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
@@ -46,6 +40,8 @@
       [
         "react-native-google-mobile-ads",
         {
+          "androidappid": "ca-app-pub-3213905360913918~3763554955",
+          "iosappid": "ca-app-pub-3213905360913918~3763554955",
           "userTrackingUsageDescription": "This identifier will be used to deliver personalized ads to you.",
           "skAdNetworkItems": [
             "cstr6suwn9.skadnetwork",
@@ -102,6 +98,7 @@
       ],
       [
         "expo-build-properties",
+        "react-native-iaps",
         {
           "android": {
             "enableProguardInReleaseBuilds": true,
