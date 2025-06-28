@@ -13,7 +13,6 @@
     "production": {
       "android": {
         "autoIncrement": true,
-        "gradleCommand": ":app:bundleRelease -Pandroid.enableProguardInReleaseBuilds=true"
       },
       "ios": {
         "autoIncrement": true

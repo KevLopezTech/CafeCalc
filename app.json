@@ -37,7 +37,6 @@
     },
     "plugins": [
       "expo-router",
-      "react-native-iap",
       [
         "react-native-google-mobile-ads",
         {
@@ -101,6 +100,8 @@
         "expo-build-properties",
         {
           "android": {
+            "enableProguardInReleaseBuilds": true,
+            "extraProguardRules": "-keep class org.json.** { *; } -keep class com.android.billingclient.** { *; }",
             "missingDimensionStrategy": [
               {
                 "dimension": "store",
