@@ -37,7 +37,8 @@
     },
     "plugins": [
       "expo-router",
-      ["react-native-iap",
+      [
+        "expo-iap",
         {
           "paymentProvider": "both"
         }
@@ -100,22 +101,7 @@
             "3qcr597p9d.skadnetwork"
           ]
         }
-      ],
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "enableProguardInReleaseBuilds": true,
-            "extraProguardRules": "-keep class org.json.** { *; } -keep class com.android.billingclient.** { *; }",
-            "missingDimensionStrategy": [
-              {
-                "dimension": "store",
-                "flavor": "play"
-              }
-            ]
-          }
-        }
       ]
-    ]
+      ]
   }
 }

@@ -7,14 +7,13 @@ import {
     endConnection,
     getProducts,
     getAvailablePurchases,
-    requestPurchase,
     finishTransaction,
     purchaseErrorListener,
     purchaseUpdatedListener,
     Product,
     Purchase,
     PurchaseError,
-} from 'react-native-iap';
+} from 'expo-iap';
 
 // IMPORTANT: These MUST match the Product IDs you create in the app stores.
 const IAP_SKUS = Platform.select({
@@ -73,18 +72,18 @@ export const PurchaseProvider: React.FC<{ children: ReactNode }> = ({ children }
             const newEntitlements = { ...currentEntitlements };
             for (const purchase of purchaseHistory) {
                 if (purchase.transactionReceipt) {
-                    const { productId } = purchase;
-                    console.log(`[IAP] Granting entitlement for: ${productId}`);
+                    const { id } = purchase;
+                    console.log(`[IAP] Granting entitlement for: ${id}`);
                     newEntitlements.isAdFree = true;
-                    if (productId.includes('premiumpack01')) {
+                    if (id.includes('premiumpack01')) {
                         newEntitlements.hasAllThemes = true;
-                    } else if (productId.includes('theme.')) {
-                        const themeKey = productId.split('theme.').pop();
+                    } else if (id.includes('theme.')) {
+                        const themeKey = id.split('theme.').pop();
                         if (themeKey && !newEntitlements.unlockedThemes.includes(themeKey)) {
                             newEntitlements.unlockedThemes.push(themeKey);
                         }
-                    } else if (productId.includes('theme_')) {
-                        const themeKey = productId.split('theme_').pop();
+                    } else if (id.includes('theme_')) {
+                        const themeKey = id.split('theme_').pop();
                         if (themeKey && !newEntitlements.unlockedThemes.includes(themeKey)) {
                             newEntitlements.unlockedThemes.push(themeKey);
                         }
@@ -118,7 +117,7 @@ export const PurchaseProvider: React.FC<{ children: ReactNode }> = ({ children }
                         try {
                             grantEntitlements([purchase]);
                             await finishTransaction({ purchase, isConsumable: false });
-                            console.log(`[IAP] Transaction for ${purchase.productId} finished.`);
+                            console.log(`[IAP] Transaction for ${purchase.id} finished.`);
                         } catch (error) {
                             console.error('[IAP] Failed to finish transaction.', error);
                         }
@@ -132,7 +131,7 @@ export const PurchaseProvider: React.FC<{ children: ReactNode }> = ({ children }
                 if (IAP_SKUS.length > 0) {
                     console.log('[IAP] Step 4: Fetching products with getProducts()...');
                     try {
-                        const fetchedProducts = await getProducts({ skus: IAP_SKUS });
+                        const fetchedProducts = await getProducts( IAP_SKUS );
                         console.log('[IAP] Step 5: Fetched products response:', fetchedProducts);
                         if (fetchedProducts && fetchedProducts.length > 0) {
                             setProducts(fetchedProducts);
@@ -164,7 +163,7 @@ export const PurchaseProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     const purchaseItem = async (sku: string) => {
         try {
-            await requestPurchase({ skus: [sku] });
+            await purchaseItem( sku );
         } catch (error) {
             console.error(`Error purchasing item ${sku}:`, error);
         }

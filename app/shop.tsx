@@ -6,7 +6,7 @@ import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { usePurchases } from '@/contexts/PurchaseContexts'; // Import our IAP hook
-import { Product } from 'react-native-iap'; // Correct import from the new library
+import { Product } from 'expo-iap'; // Correct import from the new library
 
 export default function ShopScreen() {
     const router = useRouter();
@@ -30,7 +30,7 @@ export default function ShopScreen() {
     const findProduct = (skuIdentifier: string): Product | undefined => { // Corrected type to Product
         // Finds a product where the productId ends with the identifier
         // This works for both iOS (com.company.app.adfree) and Android (adfree)
-        return products.find(p => p.productId.endsWith(skuIdentifier));
+        return products.find(p => p.id.endsWith(skuIdentifier));
     };
 
     // Find the specific products we want to display
@@ -50,7 +50,7 @@ export default function ShopScreen() {
         purchaseButtonText: string = 'Purchase'
     ) => {
         // The localizedPrice property is available on the Product type from react-native-iap
-        const displayPrice = isIAPReady ? (product?.localizedPrice || priceFallback) : '...';
+        const displayPrice = isIAPReady ? (product?.price || priceFallback) : '...';
 
         return (
             <View style={[styles.optionCard, { backgroundColor: cardBackgroundColor, borderColor: cardBorderColor }]}>
@@ -67,7 +67,7 @@ export default function ShopScreen() {
                         { backgroundColor: buttonBackgroundColor },
                         (!product || isPurchased) && styles.disabledButton // Visual style for disabled
                     ]}
-                    onPress={() => product && purchaseItem(product.productId)}
+                    onPress={() => product && purchaseItem(product.id)}
                     disabled={!product || isPurchased}
                 >
                     <Text style={[styles.purchaseButtonText, { color: buttonTextColor }]}>
