@@ -65,6 +65,7 @@ export default function HomeScreen() {
     const iconColor = useThemeColor('icon');
 
     const adUnitId = TestIds.BANNER;
+
     // const adUnitId = __DEV__
     //     ? TestIds.BANNER
     //     : (Platform.OS === 'ios'
