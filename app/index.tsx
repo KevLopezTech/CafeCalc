@@ -68,7 +68,7 @@ export default function HomeScreen() {
         ? TestIds.BANNER
         : (Platform.OS === 'ios'
             ? 'YOUR_REAL_IOS_AD_UNIT_ID' // Replace with your actual Ad Unit ID
-            : 'ca-app-pub-3213905360913918/6717005440'); // Replace with your actual Ad Unit ID
+            : 'ca-app-pub-3213905360913918/5699853504'); // Replace with your actual Ad Unit ID
 
     const billAmountNum = parseFloat(inputAmount);
 
