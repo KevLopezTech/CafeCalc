@@ -1,5 +1,5 @@
 // contexts/PurchaseContext.tsx
-import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useEffect, useContext, ReactNode, useCallback } from 'react';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -7,6 +7,7 @@ import {
     endConnection,
     getProducts,
     getAvailablePurchases,
+    requestPurchase as iapRequestPurchase,
     finishTransaction,
     purchaseErrorListener,
     purchaseUpdatedListener,
@@ -43,6 +44,24 @@ interface PurchaseContextType {
 
 const PurchaseContext = createContext<PurchaseContextType | undefined>(undefined);
 
+// Custom wrapper for requestPurchase to handle different API signatures
+const requestPurchase = async (sku: string) => {
+    try {
+        // Try the most common API patterns for expo-iap
+        return await (iapRequestPurchase as any)(sku);
+    } catch (error1) {
+        try {
+            return await (iapRequestPurchase as any)({ sku });
+        } catch (error2) {
+            try {
+                return await (iapRequestPurchase as any)({ productId: sku });
+            } catch (error3) {
+                throw new Error(`All requestPurchase attempts failed. Last error: ${error3}`);
+            }
+        }
+    }
+};
+
 export const PurchaseProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [isIAPReady, setIsIAPReady] = useState(false);
     const [products, setProducts] = useState<Product[]>([]);
@@ -58,58 +77,89 @@ export const PurchaseProvider: React.FC<{ children: ReactNode }> = ({ children }
             if (storedEntitlements) {
                 setEntitlements(JSON.parse(storedEntitlements));
             }
-        } catch (e) { console.error("Failed to load entitlements.", e); }
+        } catch (e) {
+            console.error("Failed to load entitlements.", e);
+        }
     };
 
-    const saveEntitlements = async (newEntitlements: UserEntitlements) => {
+    const saveEntitlements = useCallback(async (newEntitlements: UserEntitlements) => {
         try {
             await AsyncStorage.setItem(ENTITLEMENTS_STORAGE_KEY, JSON.stringify(newEntitlements));
-        } catch (e) { console.error("Failed to save entitlements.", e); }
-    };
+        } catch (e) {
+            console.error("Failed to save entitlements.", e);
+        }
+    }, []);
 
-    const grantEntitlements = (purchaseHistory: Purchase[]) => {
+    const grantEntitlements = useCallback((purchaseHistory: Purchase[]) => {
         setEntitlements(currentEntitlements => {
             const newEntitlements = { ...currentEntitlements };
+            let hasChanges = false;
+
             for (const purchase of purchaseHistory) {
                 if (purchase.transactionReceipt) {
-                    const { id } = purchase;
-                    console.log(`[IAP] Granting entitlement for: ${id}`);
-                    newEntitlements.isAdFree = true;
-                    if (id.includes('premiumpack01')) {
-                        newEntitlements.hasAllThemes = true;
-                    } else if (id.includes('theme.')) {
-                        const themeKey = id.split('theme.').pop();
-                        if (themeKey && !newEntitlements.unlockedThemes.includes(themeKey)) {
-                            newEntitlements.unlockedThemes.push(themeKey);
+                    // Try multiple possible property names for product identifier
+                    const productSku = (purchase as any).productSku ||
+                        (purchase as any).sku ||
+                        (purchase as any).productId ||
+                        (purchase as any).productIdentifier || '';
+
+                    console.log(`[IAP] Purchase object keys:`, Object.keys(purchase));
+                    console.log(`[IAP] Product SKU found:`, productSku);
+
+                    if (productSku) {
+                        console.log(`[IAP] Granting entitlement for: ${productSku}`);
+
+                        if (!newEntitlements.isAdFree) {
+                            newEntitlements.isAdFree = true;
+                            hasChanges = true;
                         }
-                    } else if (id.includes('theme_')) {
-                        const themeKey = id.split('theme_').pop();
-                        if (themeKey && !newEntitlements.unlockedThemes.includes(themeKey)) {
-                            newEntitlements.unlockedThemes.push(themeKey);
+
+                        if (productSku.includes('premiumpack01') && !newEntitlements.hasAllThemes) {
+                            newEntitlements.hasAllThemes = true;
+                            hasChanges = true;
+                        } else if (productSku.includes('theme.')) {
+                            const themeKey = productSku.split('theme.').pop();
+                            if (themeKey && !newEntitlements.unlockedThemes.includes(themeKey)) {
+                                newEntitlements.unlockedThemes.push(themeKey);
+                                hasChanges = true;
+                            }
+                        } else if (productSku.includes('theme_')) {
+                            const themeKey = productSku.split('theme_').pop();
+                            if (themeKey && !newEntitlements.unlockedThemes.includes(themeKey)) {
+                                newEntitlements.unlockedThemes.push(themeKey);
+                                hasChanges = true;
+                            }
                         }
                     }
                 }
             }
-            console.log("[IAP] Updating and saving entitlements:", newEntitlements);
-            saveEntitlements(newEntitlements);
+
+            if (hasChanges) {
+                console.log("[IAP] Updating and saving entitlements:", newEntitlements);
+                saveEntitlements(newEntitlements).catch(console.error);
+            }
+
             return newEntitlements;
         });
-    };
+    }, [saveEntitlements]);
 
     useEffect(() => {
         let purchaseUpdateSubscription: any = null;
         let purchaseErrorSubscription: any = null;
+        let isComponentMounted = true;
 
         const initializeIAP = async () => {
             console.log('[IAP] Step 1: Initializing...');
             await loadEntitlements();
+
             try {
                 console.log('[IAP] Step 2: Calling initConnection()...');
                 const connectionResult = await initConnection();
                 console.log('[IAP] Step 3: initConnection result:', connectionResult);
 
-                // This listener is for purchases that are pending when the app starts
-                // e.g., if the app closes before a purchase is finished.
+                if (!isComponentMounted) return;
+
+                // Set up purchase listeners
                 purchaseUpdateSubscription = purchaseUpdatedListener(async (purchase: Purchase) => {
                     console.log('[IAP] purchaseUpdatedListener triggered.', purchase);
                     const receipt = purchase.transactionReceipt;
@@ -117,7 +167,11 @@ export const PurchaseProvider: React.FC<{ children: ReactNode }> = ({ children }
                         try {
                             grantEntitlements([purchase]);
                             await finishTransaction({ purchase, isConsumable: false });
-                            console.log(`[IAP] Transaction for ${purchase.id} finished.`);
+                            const productSku = (purchase as any).productSku ||
+                                (purchase as any).sku ||
+                                (purchase as any).productId ||
+                                'unknown';
+                            console.log(`[IAP] Transaction for ${productSku} finished.`);
                         } catch (error) {
                             console.error('[IAP] Failed to finish transaction.', error);
                         }
@@ -128,12 +182,12 @@ export const PurchaseProvider: React.FC<{ children: ReactNode }> = ({ children }
                     console.warn('[IAP] purchaseErrorListener:', error);
                 });
 
-                if (IAP_SKUS.length > 0) {
+                if (IAP_SKUS.length > 0 && isComponentMounted) {
                     console.log('[IAP] Step 4: Fetching products with getProducts()...');
                     try {
-                        const fetchedProducts = await getProducts( IAP_SKUS );
+                        const fetchedProducts = await getProducts(IAP_SKUS);
                         console.log('[IAP] Step 5: Fetched products response:', fetchedProducts);
-                        if (fetchedProducts && fetchedProducts.length > 0) {
+                        if (fetchedProducts && fetchedProducts.length > 0 && isComponentMounted) {
                             setProducts(fetchedProducts);
                         }
                     } catch (error) {
@@ -146,14 +200,17 @@ export const PurchaseProvider: React.FC<{ children: ReactNode }> = ({ children }
             } catch (error) {
                 console.error('[IAP] Error during IAP initialization:', error);
             } finally {
-                console.log('[IAP] Step 6: Initialization complete. Setting isIAPReady to true.');
-                setIsIAPReady(true);
+                if (isComponentMounted) {
+                    console.log('[IAP] Step 6: Initialization complete. Setting isIAPReady to true.');
+                    setIsIAPReady(true);
+                }
             }
         };
 
         initializeIAP();
 
         return () => {
+            isComponentMounted = false;
             purchaseUpdateSubscription?.remove();
             purchaseErrorSubscription?.remove();
             endConnection();
@@ -161,17 +218,25 @@ export const PurchaseProvider: React.FC<{ children: ReactNode }> = ({ children }
         };
     }, []);
 
-    const purchaseItem = async (sku: string) => {
+    const purchaseItem = useCallback(async (sku: string) => {
+        if (!isIAPReady) {
+            console.warn('[IAP] IAP not ready yet');
+            return;
+        }
+
         try {
-            await purchaseItem( sku );
+            console.log(`[IAP] Attempting to purchase: ${sku}`);
+            await requestPurchase(sku);
         } catch (error) {
             console.error(`Error purchasing item ${sku}:`, error);
+            throw error;
         }
-    };
+    }, [isIAPReady]);
 
-    const restorePurchases = async () => {
+    const restorePurchases = useCallback(async () => {
         try {
             const purchases = await getAvailablePurchases();
+            console.log('[IAP] Available purchases:', purchases);
             if (purchases && purchases.length > 0) {
                 grantEntitlements(purchases);
                 alert("Your previous purchases have been successfully restored!");
@@ -182,10 +247,16 @@ export const PurchaseProvider: React.FC<{ children: ReactNode }> = ({ children }
             console.error("Error restoring purchases:", error);
             alert("An error occurred while trying to restore purchases.");
         }
-    };
+    }, [grantEntitlements]);
 
     return (
-        <PurchaseContext.Provider value={{ isIAPReady, products, entitlements, purchaseItem, restorePurchases }}>
+        <PurchaseContext.Provider value={{
+            isIAPReady,
+            products,
+            entitlements,
+            purchaseItem,
+            restorePurchases
+        }}>
             {children}
         </PurchaseContext.Provider>
     );

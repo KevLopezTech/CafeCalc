@@ -101,6 +101,17 @@
             "3qcr597p9d.skadnetwork"
           ]
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableProguardInReleaseBuilds": true,
+            "minifyEnabled": true,
+            "shrinkResources": true,
+            "extraProguardRules": "-keep class com.android.billingclient.** { *; }\n-keep class com.google.android.gms.ads.** { *; }\n-keep class * extends java.util.ListResourceBundle { protected java.lang.Object[][] getContents(); }\n-keep class com.google.android.gms.** { *; }\n-dontwarn com.google.android.gms.**"
+          }
+        }
       ]
       ]
   }
