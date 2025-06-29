@@ -64,11 +64,12 @@ export default function HomeScreen() {
     const placeholderTextColor = useThemeColor('placeholderText');
     const iconColor = useThemeColor('icon');
 
-    const adUnitId = __DEV__
-        ? TestIds.BANNER
-        : (Platform.OS === 'ios'
-            ? 'YOUR_REAL_IOS_AD_UNIT_ID' // Replace with your actual Ad Unit ID
-            : 'ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY'); // Replace with your actual Ad Unit ID
+    const adUnitId = TestIds.BANNER;
+    // const adUnitId = __DEV__
+    //     ? TestIds.BANNER
+    //     : (Platform.OS === 'ios'
+    //         ? 'YOUR_REAL_IOS_AD_UNIT_ID' // Replace with your actual Ad Unit ID
+    //         : 'ca-app-pub-3213905360913918/5699853504'); // Replace with your actual Ad Unit ID
 
     const billAmountNum = parseFloat(inputAmount);
 
